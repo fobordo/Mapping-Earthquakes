@@ -1,4 +1,4 @@
-// Create a map with all recorded earthquakes from the past seven days.
+// Add a color range for the magnitude and a popup for each earthquake.
 
 // Add console.log to check to see if our code is working.
 console.log("working");
@@ -39,18 +39,39 @@ L.control.layers(baseMaps).addTo(map)
 d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson").then(function(data) {
     
     // The styleInfo() function returns the style data for each of the earthquakes we plot on the map.
-    // We pass the magnitude of the earthquake into a function to calculate the radius.
+    // We pass the magnitude of the earthquake into two separate functions to calculate the color and radius.
     function styleInfo (feature) {
         return {
             opacity: 1,
             fillOpacity: 1,
-            fillColor: "#ffae42",
+            // fillColor will be determined by the getColor() function to determine color based on magnitude.
+            fillColor: getColor(feature.properties.mag),
             color: "#000000",
             // radius will be determined by the getRadius() function to determine radius based on magnitude.
             radius: getRadius(feature.properties.mag),
             stroke: true,
             weight: 0.5
         }
+    }
+
+    // The getColor() function determines the color of the circle based on the magnitude of the earthquake.
+    function getColor(magnitude) {
+        if (magnitude > 5) {
+            return "#ea2c2c"
+        }
+        if (magnitude > 4) {
+            return "#ea822c"
+        }
+        if (magnitude > 3) {
+            return "#ee9c00"
+        }
+        if (magnitude > 2) {
+            return "#eecc00"
+        }
+        if (magnitude > 1) {
+            return "#d4ee00"
+        }
+        return "#98ee00"
     }
 
     // The getRadius() function determines the radius of the earthquake marker based on its magnitude.
@@ -70,7 +91,15 @@ d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geoj
             return L.circleMarker(latlng)
         },
         // Set the style for each circleMarker using the styleInfo function
-        style: styleInfo
+        style: styleInfo,
+        // Create a popup for each circleMarker to display the magnitude and location
+        // of the earthquake after the marker has been created and styled.
+        onEachFeature: function(feature, layer) {
+            layer.bindPopup(
+                `Magnitude: ${feature.properties.mag} 
+                <br>
+                Location: ${feature.properties.place}`)
+        }
     })
     .addTo(map)
 });
